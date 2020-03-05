@@ -5,7 +5,7 @@
 // @version  	  1.0
 // @description   自动抢课
 // @require https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js
-// @include       https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=*
+// @include https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=chooseCourse:*
 // @grant   GM_getValue
 // @grant   GM_setValue
 // @grant   GM_addValueChangeListener
@@ -41,8 +41,11 @@ var currentPage = {
 };
 
 var setting = {
+  // 给查看每节课详细信息一点缓冲时间
   wait: 100,
+  // 抢课刷新间隔
   timeout: 500,
+  // 当前抢了多少次
   count: 0
 };
 
@@ -58,6 +61,7 @@ $(document).ready(function() {
   } else {
     page_ = "NON_COURSE_PICK";
   }
+
   setting.div = $(
     `<div style=" width: 330px; position: fixed; top: 0; right: 0; z-index: 99999; background-color: rgba(255, 255, 255, 0.6); overflow-x: auto;">
         <span style="font-size: medium;"></span>
@@ -183,23 +187,25 @@ function refreshList() {
   `);
   subjectInfo.map((value, index) => {
     setting.div.find("tbody").append(
-      `<tr index="${index}">
-            <td>
-            ${value.subjectName}
-            </td>
-            <td>
-            ${value.teacherName}
-            </td>
-            <td>
-            ${value.time}
-            </td>
-            <td>
-              <button style="margin-top: -2px; color: #0078D7; font-size: 11.5px; cursor: pointer;" class="editCourse">编辑</button>
-              <button style="margin-top: -2px; color: #0078D7; font-size: 11.5px;cursor: pointer;" class="delCourse">移除</button>
-            </td>
-            </tr>`
+      `
+      <tr index="${index}">
+        <td>
+        ${value.subjectName}
+        </td>
+        <td>
+        ${value.teacherName}
+        </td>
+        <td>
+        ${value.time}
+        </td>
+        <td>
+          <button style="margin-top: -2px; color: #0078D7; font-size: 11.5px; cursor: pointer;" class="editCourse">编辑</button>
+          <button style="margin-top: -2px; color: #0078D7; font-size: 11.5px;cursor: pointer;" class="delCourse">移除</button>
+        </td>
+      </tr>`
     );
   });
+
   $(".delCourse").on("click", e => {
     let targetIndex = Number(
       e.currentTarget.parentElement.parentElement.attributes.index.value
@@ -209,6 +215,7 @@ function refreshList() {
     }
     refreshList();
   });
+
   $(".editCourse").on("click", e => {
     let targetIndex = Number(
       e.currentTarget.parentElement.parentElement.attributes.index.value
@@ -323,10 +330,12 @@ function findClass() {
         0
       );
       setting.count++;
+      // 获取当前课的所有可选课程
       for (var i = 0; i < $("a.stat.off").length; i++) {
         empty_flag = false;
         var $this = $("a.stat.off").eq(i);
         var $parents = $this.parents("tr.editRows");
+        // 获取可选课程的老师上课时间地点等信息
         for (var j = 0; j < $parents.length; j++) {
           setting.time = $parents
             .eq(j)
@@ -353,6 +362,7 @@ function findClass() {
             setting.teacher.match(teacherNameRegex) &&
             setting.time.match(timeRegex)
           ) {
+            // 选课
             eval($this.attr("href"));
             pushLog("完成对课程“" + subjectInfo[k].subjectName + "”的选课", 3);
             delCourse(k);
@@ -363,6 +373,7 @@ function findClass() {
             }
           } else {
             pushLog("目标课暂无满足要求的席位，重试中", 0);
+            // 返回课程列表
             $("a.trigger.open")[0].click();
           }
         }
@@ -374,7 +385,3 @@ function findClass() {
     // 没找到就返回刷新
   }
 }
-// 获取当前课的所有可选课程 $("a.stat.off").each(function(){console.log($(this).text())})
-// 获取可选课程的老师上课时间地点等信息 $($("a.stat.off")[0]).parents("tr.editRows").each(function() {console.log($(this).children().eq(7).html().split("<br>"));});
-// 模拟选课 eval($($("a.stat.off")[0]).attr("href"))
-// 返回课程列表 $("a.trigger.open").click()
