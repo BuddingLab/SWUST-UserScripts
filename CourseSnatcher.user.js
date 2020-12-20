@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name          SWUST抢课+
+// @name          SWUST 抢课+
 // @author	      lengthmin & Paranoid_AF
-// @namespace     lengthmin.Qiangke
+// @namespace     dean.swust.Qiangke
 // @version  	  1.0
 // @description   自动抢课
 // @require https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js
@@ -37,7 +37,7 @@ var currentPage = {
   commonTask: "全校通选课",
   retakeTask: "重修",
   sportTask: "体育",
-  NON_COURSE_PICK: "非选课"
+  NON_COURSE_PICK: "非选课",
 };
 
 var setting = {
@@ -46,10 +46,10 @@ var setting = {
   // 抢课刷新间隔
   timeout: 500,
   // 当前抢了多少次
-  count: 0
+  count: 0,
 };
 
-$(document).ready(function() {
+$(document).ready(function () {
   var params = parseSearch();
   var event = params["event"];
   let page_;
@@ -104,14 +104,14 @@ $(document).ready(function() {
   ).appendTo("body");
   refreshList();
   refreshLogPos();
-  $("#newCourse").click(e => {
+  $("#newCourse").click((e) => {
     let result = inputCourse();
     if (result !== null) {
       addCourse(result);
       refreshList();
     }
   });
-  $("#logSwitch").click(e => {
+  $("#logSwitch").click((e) => {
     let logEnabled = GM_getValue(logKey, true);
     GM_setValue(logKey, !logEnabled);
     refreshLogPos();
@@ -161,7 +161,7 @@ function pushLog(info, type = 0) {
   let date = new Date();
   $("#logContent").append(
     `<p>[${text}] ${date.toLocaleTimeString("zh", {
-      hour12: false
+      hour12: false,
     })} - ${info}</p>`
   );
   $("#logContent").scrollTop($("#logContent")[0].scrollHeight);
@@ -206,7 +206,7 @@ function refreshList() {
     );
   });
 
-  $(".delCourse").on("click", e => {
+  $(".delCourse").on("click", (e) => {
     let targetIndex = Number(
       e.currentTarget.parentElement.parentElement.attributes.index.value
     );
@@ -216,14 +216,14 @@ function refreshList() {
     refreshList();
   });
 
-  $(".editCourse").on("click", e => {
+  $(".editCourse").on("click", (e) => {
     let targetIndex = Number(
       e.currentTarget.parentElement.parentElement.attributes.index.value
     );
     let result = inputCourse({
       course: subjectInfo[targetIndex].subjectName,
       teacher: subjectInfo[targetIndex].teacherName,
-      time: subjectInfo[targetIndex].time
+      time: subjectInfo[targetIndex].time,
     });
     if (result !== null) {
       editCourse(targetIndex, result);
@@ -236,7 +236,7 @@ function addCourse(info) {
   subjectInfo.push({
     subjectName: info.course, // 要抢的科目名字
     teacherName: info.teacher, // 要抢的科目教师
-    time: info.time
+    time: info.time,
   });
   GM_setValue(storageKey, subjectInfo);
 }
@@ -245,7 +245,7 @@ function editCourse(index, info) {
   subjectInfo[index] = {
     subjectName: info.course, // 要抢的科目名字
     teacherName: info.teacher, // 要抢的科目教师
-    time: info.time
+    time: info.time,
   };
   GM_setValue(storageKey, subjectInfo);
 }
@@ -305,16 +305,13 @@ function inputCourse(defaultInfo = { course: "", teacher: ".*", time: ".*" }) {
 function findClass() {
   for (let k = 0; k < subjectInfo.length; k++) {
     // 从选课首页点进教师详情那一页
-    $("div.courseShow.clearfix span.name").each(function() {
+    $("div.courseShow.clearfix span.name").each(function () {
       let subjectNameRegex = new RegExp(subjectInfo[k].subjectName, "iu");
       let currsubjectName = $(this).text();
       if (currsubjectName.match(subjectNameRegex)) {
         pushLog("已找到" + subjectInfo[k].subjectName, 0);
         // 进入选课详情
-        $(this)
-          .parent()
-          .find("a.trigger[cid]")[0]
-          .click();
+        $(this).parent().find("a.trigger[cid]")[0].click();
       }
     });
     var flag = false;
@@ -337,23 +334,11 @@ function findClass() {
         var $parents = $this.parents("tr.editRows");
         // 获取可选课程的老师上课时间地点等信息
         for (var j = 0; j < $parents.length; j++) {
-          setting.time = $parents
-            .eq(j)
-            .children()
-            .eq(8)
-            .text();
+          setting.time = $parents.eq(j).children().eq(8).text();
           pushLog("上课时间:" + setting.time, 0);
-          setting.location = $parents
-            .eq(j)
-            .children()
-            .eq(9)
-            .text();
+          setting.location = $parents.eq(j).children().eq(9).text();
           pushLog("上课地点:" + setting.location, 0);
-          setting.teacher = $parents
-            .eq(j)
-            .children()
-            .eq(2)
-            .text();
+          setting.teacher = $parents.eq(j).children().eq(2).text();
           pushLog("上课老师:" + setting.teacher, 0);
           let teacherNameRegex = new RegExp(subjectInfo[k].teacherName, "iu");
           let timeRegex = new RegExp(subjectInfo[k].time, "iu");
